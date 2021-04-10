@@ -1,3 +1,4 @@
+from typing import List,Type, Dict
 from pydantic import BaseModel
 
 
@@ -32,6 +33,14 @@ class Matiere(BaseModel):
 
     class Config:
         orm_mode = True
+        schema_extra = {
+            'example': 
+                {
+                    'idMatiere': 1,
+                    'nom': 'SGBD Avancés'
+                },
+                
+        }
 
 class MatiereIn(BaseModel):
     nom: str
@@ -45,6 +54,7 @@ class Professeur(BaseModel):
     prenom: str 
     nom: str 
     email: str
+    matiere : List[Matiere]
 
     class Config:
         orm_mode = True
@@ -52,10 +62,24 @@ class Professeur(BaseModel):
             'example': 
                 {
                     'idProf': 2,
-                    'prenom': 'Mohamed',
-                    'nom': 'Diop',
-                    'email': 'mohamed.diop@esp.sn'
-                },
+                    'prenom': 'Jane',
+                    'nom': 'Doe',
+                    'email': 'jane.doe@mail.net',
+                    "matiere": [
+                        {
+                        "idMatiere": 1,
+                        "nom": "Génie Logiciel"
+                        },
+                        {
+                        "idMatiere": 2,
+                        "nom": "POO Avancée"
+                        },
+                        {
+                        "idMatiere": 3,
+                        "nom": "SGBD"
+                        }
+                    ]
+                }
                 
         }
 
@@ -66,7 +90,7 @@ class ProfesseurIn(BaseModel):
     password: str
 
     class Config:
-        orm_mode = True 
+        orm_mode = True
         schema_extra = {
             'example': 
                 {
@@ -77,4 +101,12 @@ class ProfesseurIn(BaseModel):
                 },
                 
         }
+
+class ProfMatiereIn(BaseModel):
+    ## Peut-on utiliser l'email et le nom de la matiere pour faire simple ??
+    idProf: int
+    idMatiere: int
+
+    class Config:
+        orm_mode = True
 
