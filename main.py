@@ -31,6 +31,11 @@ tags_metadata = [
         "name": "Professeurs",
         "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
         
+    },
+    {
+        "name": "Etudiants",
+        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+        
     }
 ]
 
@@ -59,10 +64,10 @@ def get_db():
 def get_password_hash(password):
     return pwd_context.hash(password)
 
-def get_subjects_by_teacher_id(prof_id, db):
+def get_subjects_of_teacher(profId, db):
     statement = 'SELECT prof_matiere.idMatiere, matiere.nom FROM prof_matiere '
     statement +='INNER JOIN matiere ON prof_matiere.idMatiere = matiere.idMatiere ' 
-    statement += 'WHERE prof_matiere.idProf = '+str(prof_id)+';'
+    statement += 'WHERE prof_matiere.idProf = '+str(profId)+';'
     # list of tuples
     result = db.execute(statement)
     myresult = []
@@ -72,6 +77,14 @@ def get_subjects_by_teacher_id(prof_id, db):
 
     return matieres
 
+def get_class_of_student(etudiantId, db):
+    statement = 'SELECT Etudiant.idClasse, Classe.nomClasse FROM Etudiant '
+    statement +='INNER JOIN Classe ON Etudiant.idClasse = Classe.idClasse '
+    statement += 'WHERE Etudiant.idEtudiant = '+str(etudiantId)+';'
+    result = db.execute(statement)
+
+    return result
+
 
 ############ Route for make operation in Classes ##########
 
@@ -80,12 +93,12 @@ def get_classes(db: Session = Depends(get_db)):
     classes = db.query(models.Classe).all()
     return classes
 
-@app.get('/api/classes/{class_id}',response_model=schemas.Classe,tags=["Classes"])
-def get_class(class_id: int,db: Session = Depends(get_db)):
-    my_class = db.query(models.Classe).filter(models.Classe.idClasse==class_id).first()
+@app.get('/api/classe/{classeId}',response_model=schemas.Classe,tags=["Classes"])
+def get_class(classeId: int,db: Session = Depends(get_db)):
+    my_class = db.query(models.Classe).filter(models.Classe.idClasse==classeId).first()
     return my_class
 
-@app.post('/api/classes',tags=["Classes"])
+@app.post('/api/classe',tags=["Classes"])
 def create_classe(classe: schemas.ClasseIn,db: Session = Depends(get_db)):
     myclasse = models.Classe(nomClasse = classe.nomClasse)
     db.add(myclasse)
@@ -94,17 +107,17 @@ def create_classe(classe: schemas.ClasseIn,db: Session = Depends(get_db)):
 
 ############ Route for make operation in Subjects ##########
 
-@app.get('/api/matieres',response_model=List[schemas.Matiere], tags=["Matières"])
+@app.get('/api/matiere',response_model=List[schemas.Matiere], tags=["Matières"])
 def get_subjects(db: Session = Depends(get_db)):
     subjects = db.query(models.Matiere).all()
     return subjects
 
-@app.get('/api/matieres/{matiere_id}',response_model=schemas.Matiere,tags=["Matières"])
-def get_subject(matiere_id: int,db: Session = Depends(get_db)):
-    my_subject = db.query(models.Matiere).filter(models.Matiere.idMatiere == matiere_id).first()
+@app.get('/api/matiere/{matiereId}',response_model=schemas.Matiere,tags=["Matières"])
+def get_subject(matiereId: int,db: Session = Depends(get_db)):
+    my_subject = db.query(models.Matiere).filter(models.Matiere.idMatiere == matiereId).first()
     return my_subject
 
-@app.post('/api/matieres',tags=["Matières"])
+@app.post('/api/matiere',tags=["Matières"])
 def create_subject(matiere: schemas.MatiereIn,db: Session = Depends(get_db)):
     ma_matiere = models.Matiere(nom = matiere.nom)
     db.add(ma_matiere)
@@ -117,25 +130,26 @@ def create_subject(matiere: schemas.MatiereIn,db: Session = Depends(get_db)):
 def get_teachers(db: Session = Depends(get_db)):
     profs = db.query(models.Professeur).all()
     for i in range(len(profs)):
-        profs[i].matiere = get_subjects_by_teacher_id(profs[i].idProf, db)
+        profs[i].matiere = get_subjects_of_teacher(profs[i].idProf, db)
     
     return profs
 
-@app.get('/api/professeurs/{prof_id}',response_model=schemas.Professeur,tags=["Professeurs"])
-def get_subject(prof_id: int,db: Session = Depends(get_db)):
-    my_teacher = db.query(models.Professeur).filter(models.Professeur.idProf == prof_id).first()
-    my_teacher.matiere= get_subjects_by_teacher_id(prof_id, db)
+@app.get('/api/professeur/{profId}',response_model=schemas.Professeur,tags=["Professeurs"])
+def get_subject(profId: int,db: Session = Depends(get_db)):
+    my_teacher = db.query(models.Professeur).filter(models.Professeur.idProf == profId).first()
+    my_teacher.matiere= get_subjects_of_teacher(profId, db)
 
     return my_teacher
 
-@app.post('/api/professeurs', tags=["Professeurs"])
+@app.post('/api/professeur', tags=["Professeurs"])
 def create_teacher(prof: schemas.ProfesseurIn,db: Session = Depends(get_db)):
     mon_prof = models.Professeur(prenom=prof.prenom,nom=prof.nom,email=prof.email,password_hash=get_password_hash(prof.password))
     db.add(mon_prof)
     db.commit()
     return {'msg':'Professeur créée'}
+
 #Table d'association Prof_matiere
-@app.post('/api/professeur/matiere', tags=["Professeurs"])
+@app.post('/api/professeur-matiere', tags=["Professeurs"])
 def attribute_subject(data: schemas.ProfMatiereIn,db: Session = Depends(get_db)):
     teacher_exists = db.query(exists().where(models.Professeur.idProf == data.idProf)).scalar()
     subject_exists = db.query(exists().where(models.Matiere.idMatiere == data.idMatiere)).scalar()
@@ -149,3 +163,29 @@ def attribute_subject(data: schemas.ProfMatiereIn,db: Session = Depends(get_db))
 
 
 ############ Route for make operation in Student ##########
+@app.get('/api/etudiants',response_model=List[schemas.Etudiant], tags=["Etudiants"])
+def get_students(db: Session = Depends(get_db)):
+    statement = 'SELECT  idEtudiant, prenom, nom, email FROM Etudiant;'
+    students = db.execute(statement)
+    mylist =[]
+    for row in students:
+        mylist.append(dict(row))
+    print(mylist)
+    for i in range(len(mylist)):
+        result = get_class_of_student(mylist[i]['idEtudiant'],db)
+        for row in result:
+            mylist[i]['classe'] = dict(row)
+
+    return parse_obj_as(List[schemas.Etudiant],mylist)
+
+@app.get('/api/etudiant/{etudiantId}',response_model=schemas.Etudiant, tags=["Etudiants"])
+def get_student(etudiantId: int,db: Session = Depends(get_db)):
+    statement = 'SELECT  idEtudiant, prenom, nom, email FROM Etudiant where idEtudiant ='+str(etudiantId)+';'
+    student = db.execute(statement)
+    for row in student:
+        my_student = dict(row)
+    result = get_class_of_student(etudiantId,db)
+    for row in result:
+        my_student['classe'] = dict(row)
+
+    return parse_obj_as(schemas.Etudiant,my_student)

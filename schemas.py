@@ -1,4 +1,4 @@
-from typing import List,Type, Dict
+from typing import List,Type, Dict, TypedDict
 from pydantic import BaseModel
 
 
@@ -106,6 +106,39 @@ class ProfMatiereIn(BaseModel):
     ## Peut-on utiliser l'email et le nom de la matiere pour faire simple ??
     idProf: int
     idMatiere: int
+
+    class Config:
+        orm_mode = True
+
+
+class Etudiant(BaseModel):
+    idEtudiant: int
+    prenom:str
+    nom: str
+    email: str
+    classe: Classe
+
+    class Config:
+        schema_extra = {
+                'example': 
+                    {
+                        "idEtudiant": 1,
+                        "prenom": "Assane",
+                        "nom": "Diatta",
+                        "email": "a.diatta@email.com",
+                        "classe": {
+                            "idClasse": 1,
+                            "nomClasse": "L3GLSI"
+                        }
+                    }
+                    
+            }
+
+class EtudiantIn(BaseModel):
+    prenom:str
+    nom: str
+    email: str
+    idClasse: int
 
     class Config:
         orm_mode = True
