@@ -143,3 +143,4 @@ class EtudiantIn(BaseModel):
     class Config:
         orm_mode = True
 
+
