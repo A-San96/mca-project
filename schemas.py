@@ -1,5 +1,5 @@
-from typing import List,Type, Dict, TypedDict
-from pydantic import BaseModel
+from typing import List, Dict, Any
+from pydantic import BaseModel, EmailStr
 
 
 
@@ -142,5 +142,9 @@ class EtudiantIn(BaseModel):
 
     class Config:
         orm_mode = True
+
+class EmailSchema(BaseModel):
+    email: List[EmailStr]
+    body: Dict[str, Any]
 
 

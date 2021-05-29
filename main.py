@@ -13,6 +13,11 @@ from passlib.context import CryptContext
 from pydantic import parse_obj_as
 from datetime import timedelta
 
+from starlette.responses import JSONResponse
+from starlette.requests import Request
+from fastapi_mail import FastMail, MessageSchema,ConnectionConfig
+from fastapi_mail.email_utils import DefaultChecker
+
 import models
 import schemas
 import meet
@@ -42,6 +47,17 @@ tags_metadata = [
 models.Base.metadata.create_all(bind=engine)
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+conf = ConnectionConfig(
+    MAIL_USERNAME = " etudiant@projectesp.sn ",
+    MAIL_PASSWORD = "ProjectESP",
+    MAIL_FROM = " etudiant@projectesp.sn ",
+    MAIL_PORT = 587,
+    MAIL_SERVER = "smtp.gmail.com",
+    MAIL_TLS = True,
+    MAIL_SSL = False,
+    TEMPLATE_FOLDER='./email '
+)
 
 
 
@@ -235,3 +251,18 @@ def get_meet_data():
 @app.get('/api/evolution_note')
 def get_evolution_note():
     return {'labels': ['1ère', '2ème', '3ème', '4ème', '5ème', '6ème', '7ème'], 'datasets': [{'label': 'Langage C', 'data': [9, 17, 13, 10, 12, 19, 14], 'fill': False}, {'label': 'Proba et Stat', 'fill': False, 'data': [10, 15, 9, 17, 10, 13, 7]}]}
+
+############ Route evaluation note form #########
+@app.post("/email")
+async def send_evalution_form(email: schemas.EmailSchema) -> JSONResponse:
+
+    message = MessageSchema(
+        subject="Fastapi-Mail module",
+        recipients=email.dict().get("email"),  # List of recipients, as many as you can pass 
+        body=email.dict().get("body"),
+        subtype="html"
+        )
+
+    fm = FastMail(conf)
+    await fm.send_message(message, template_name="evaluation_email_template.html") 
+    return JSONResponse(status_code=200, content={"message": "email has been sent"})

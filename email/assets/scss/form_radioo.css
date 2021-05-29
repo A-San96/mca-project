@@ -1,0 +1,13 @@
+.radio-btn-scss {
+    color: #d60939;
+	margin-right: 1rem;
+    border: 0.2rem solid #333;
+    background-image: linear-gradient(to left, #d60939, #d60939, #ff4c31);
+	
+}
+
+radio-btn-scss::checked{
+    
+}
+
+

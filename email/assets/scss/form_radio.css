@@ -1,0 +1,127 @@
+body {
+  background-color: #f1f1f1;
+}
+
+.container-scss {
+  width: 1160px;
+  position: relative;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 10px;
+  padding: 15px;
+  margin-top: 15px;
+  margin-bottom: 30px;
+}
+
+h5 {
+  color: white;
+}
+
+.latest-wrapper {
+  margin-top: 0px;
+}
+
+.step {
+  height: 10px;
+  width: 10px;
+  margin: 0 2px;
+  background-color: #bbbbbb;
+  border: none;
+  border-radius: 50%;
+  display: inline-block;
+  opacity: 0.5;
+}
+
+.step.active {
+  opacity: 1;
+}
+
+.step.finish {
+  background-color: #d60939;
+}
+
+.tab {
+  display: none;
+}
+
+.list {
+  -webkit-box-flex: 0;
+      -ms-flex: 0 0 20rem;
+          flex: 0 0 20rem;
+}
+
+.list__item {
+  position: relative;
+}
+
+.list__item:hover > .label {
+  color: #d60939;
+}
+
+.list__item:hover > .label::before {
+  border: 0.2rem solid #d60939;
+  margin-right: 1rem;
+}
+
+.radio-btn {
+  position: absolute;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.radio-btn:checked + .label {
+  color: #d60939;
+}
+
+.radio-btn:checked + .label::before {
+  margin-right: 1rem;
+  border: 0.2rem solid #333;
+  background-image: -webkit-gradient(linear, right top, left top, from(#d60939), color-stop(#d60939), to(#ff4c31));
+  background-image: linear-gradient(to left, #d60939, #d60939, #ff4c31);
+}
+
+.label-question {
+  margin-left: 20px;
+  margin-top: 25px;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  padding: 0.75rem 0;
+  color: #333;
+  font-size: 2rem;
+  cursor: pointer;
+  -webkit-transition: all 0.25s linear;
+  transition: all 0.25s linear;
+}
+
+.label {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  padding: 0.75rem 0;
+  color: #333;
+  font-size: 2rem;
+  cursor: pointer;
+  -webkit-transition: all 0.25s linear;
+  transition: all 0.25s linear;
+  margin-left: 8rem;
+}
+
+.label::before {
+  display: inline-block;
+  content: "";
+  height: 1.5rem;
+  width: 1.5rem;
+  margin-right: 0.625rem;
+  border: 0.2rem solid #333;
+  border-radius: 50%;
+  -webkit-transition: all 0.25s linear;
+  transition: all 0.25s linear;
+}
+/*# sourceMappingURL=form_radio.css.map */
