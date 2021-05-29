@@ -37,11 +37,13 @@ def meet_data(id_reunion):
 	results = service.activities().list(userKey='all', applicationName='meet',
 		filters='meeting_code=='+id_reunion).execute()
 	activities = results.get('items', [])
+	users = []
 
 	if not activities:
 		print('Erreur d\'authentification')
 	else:
 		print("Connexion avec succès")
+		print(activities)
 		'''
         for activity in activities:
 			if activity['events'][0]['name'] == 'call_ended':
@@ -55,4 +57,22 @@ def meet_data(id_reunion):
 			 #print(u'{0}: {1} ({2})'.format(activity['id']['time'],
 			#activity['events'][0]['name'], activity['events'][0]['parameters']))
         '''
-		return activities
+		for activity in activities:
+			my_dict = {}
+			for el in activity['events'][0]['parameters']:
+				if el['name']=='identifier':
+					my_dict['email'] = el['value']
+				if el['name']=='device_type':
+					my_dict['terminal'] = el['value']
+				if el['name']=='location_region':
+					my_dict['region'] = el['value']
+				if el['name']=='conference_id':
+					id_conference = el['value']
+				
+
+			#my_dict = {'time': time, 'email' : email, 'terminal' : terminal, 'region' : region}
+			time = activity['id']['time']
+			users.append(my_dict)
+		data = {'time': time, 'code_reunion': id_reunion,'id_conference': id_conference,'data':users}	
+
+		return data

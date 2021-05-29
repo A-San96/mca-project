@@ -68,6 +68,7 @@ class Seance(Base):
     dateFin = Column(Date, nullable=False)
     etatPartage = Column(TINYINT(1), nullable=False)
     noteSeance = Column(Float)
+    idConference = Column(String(100), nullable=False)
     idProf = Column(ForeignKey('professeur.idProf'), nullable=False, index=True)
     idClasse = Column(ForeignKey('classe.idClasse'), nullable=False, index=True)
 
