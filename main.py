@@ -2,20 +2,20 @@ from typing import List
 
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordRequestForm
+from fastapi_login import LoginManager
+from fastapi_login.exceptions import InvalidCredentialsException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import exists
 from database import SessionLocal,engine
 from passlib.context import CryptContext
 from pydantic import parse_obj_as
+from datetime import timedelta
 
-
-#from schemas import City
 import models
 import schemas
-
-models.Base.metadata.create_all(bind=engine)
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+import meet
 
 tags_metadata = [
     {
@@ -39,6 +39,12 @@ tags_metadata = [
     }
 ]
 
+models.Base.metadata.create_all(bind=engine)
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+
 
 app = FastAPI(
     title="Google Meet Course Analyzer API",
@@ -53,6 +59,36 @@ app.add_middleware(
     allow_headers=["*"],
     allow_credentials=True,
 )
+
+# Management of authentication
+SECRET = "24523862eb1ead13af04778bb8147ed58af9a9008b244029"
+manager = LoginManager(SECRET, token_url='/auth/token')
+
+fake_db = {'johndoe@email.com': {'password': 'passer123'}}
+
+@manager.user_loader
+def load_user(email: str):  # get user in the database
+    user = fake_db.get(email)
+    return user
+
+# the python-multipart package is required to use the OAuth2PasswordRequestForm
+@app.post('/auth/token')
+def login( data: OAuth2PasswordRequestForm = Depends()):
+    email = data.username
+    password = data.password
+
+    user = load_user(email)  # we are using the same function to retrieve the user
+    if not user:
+        raise InvalidCredentialsException  # you can also use your own HTTPException
+    elif password != user['password']:
+        raise InvalidCredentialsException
+
+    access_token = manager.create_access_token(
+        data=dict(sub=email), expires=timedelta(hours=2)
+    )
+    return {'access_token': access_token, 'token_type': 'bearer'}
+
+#########################################################
 
 def get_db():
     try:
@@ -99,7 +135,7 @@ def get_class(classeId: int,db: Session = Depends(get_db)):
     return my_class
 
 @app.post('/api/classe',tags=["Classes"])
-def create_classe(classe: schemas.ClasseIn,db: Session = Depends(get_db)):
+def create_classe(classe: schemas.ClasseIn,db: Session = Depends(get_db), user=Depends(manager)):
     myclasse = models.Classe(nomClasse = classe.nomClasse)
     db.add(myclasse)
     db.commit()
@@ -118,7 +154,7 @@ def get_subject(matiereId: int,db: Session = Depends(get_db)):
     return my_subject
 
 @app.post('/api/matiere',tags=["Matières"])
-def create_subject(matiere: schemas.MatiereIn,db: Session = Depends(get_db)):
+def create_subject(matiere: schemas.MatiereIn,db: Session = Depends(get_db), user=Depends(manager)):
     ma_matiere = models.Matiere(nom = matiere.nom)
     db.add(ma_matiere)
     db.commit()
@@ -142,7 +178,7 @@ def get_subject(profId: int,db: Session = Depends(get_db)):
     return my_teacher
 
 @app.post('/api/professeur', tags=["Professeurs"])
-def create_teacher(prof: schemas.ProfesseurIn,db: Session = Depends(get_db)):
+def create_teacher(prof: schemas.ProfesseurIn,db: Session = Depends(get_db), user=Depends(manager)):
     mon_prof = models.Professeur(prenom=prof.prenom,nom=prof.nom,email=prof.email,password_hash=get_password_hash(prof.password))
     db.add(mon_prof)
     db.commit()
@@ -189,3 +225,13 @@ def get_student(etudiantId: int,db: Session = Depends(get_db)):
         my_student['classe'] = dict(row)
 
     return parse_obj_as(schemas.Etudiant,my_student)
+
+################## Route for get meet data #############
+
+@app.get('/api/meet')
+def get_meet_data():
+    return meet.meet_data('EAXKQBDIGW')
+
+@app.get('/api/evolution_note')
+def get_evolution_note():
+    return {'labels': ['1ère', '2ème', '3ème', '4ème', '5ème', '6ème', '7ème'], 'datasets': [{'label': 'Langage C', 'data': [9, 17, 13, 10, 12, 19, 14], 'fill': False}, {'label': 'Proba et Stat', 'fill': False, 'data': [10, 15, 9, 17, 10, 13, 7]}]}
